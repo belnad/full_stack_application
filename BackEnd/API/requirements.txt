@@ -1,0 +1,14 @@
+fastapi 
+starlette_exporter
+python-slugify
+uvicorn 
+sqlalchemy 
+pymysql
+passlib
+python-dotenv
+redis
+pydantic
+pydantic[email]
+python-keycloak
+pyjwt
+requests
