@@ -111,4 +111,4 @@ services:
 
 secrets:
   kong_postgres_password:
-    file: ./POSTGRES_PASSWORD
+    file: ./POSTGRES_PASSWD

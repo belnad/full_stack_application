@@ -1,6 +1,6 @@
 # main.py
 
-
+import os
 from dotenv import load_dotenv # type: ignore
 from .routers import router #type: ignore
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,12 +12,11 @@ from fastapi.security import OAuth2PasswordBearer
 from keycloak import KeycloakOpenID
 from fastapi import Request
 from fastapi.responses import JSONResponse
+from keycloak.exceptions import KeycloakAuthenticationError, KeycloakConnectionError
 
 
 
 load_dotenv()
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI(
     title="SecurityNorms API",
@@ -53,11 +52,11 @@ app.include_router(router)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="http://localhost:8080/realms/newRealm/protocol/openid-connect/token")
 
-
+client_secret_key = os.getenv("CLIENT_SECRET_KEY")
 keycloak_openid = KeycloakOpenID(server_url="http://localhost:8080/",
                                  client_id="newClient",
                                  realm_name="newRealm",
-                                 client_secret_key="JcMOVoxxRtdrS1E0bmvERYjnhr2NXQHf")
+                                 client_secret_key=client_secret_key)
 
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
@@ -66,8 +65,11 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         if not user_info.get("active"):
             raise HTTPException(status_code=401, detail="Token is not active")
         return user_info
-    except Exception:
+    except (KeycloakAuthenticationError, KeycloakConnectionError) as e:
+        raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
+    except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid token")
+
 
 # Route protégée nécessitant une authentification
 @app.get("/protected")
